@@ -1,0 +1,1061 @@
+{
+  "uid": "snort3-alerts",
+  "title": "Snort 3 - алерты (MariaDB)",
+  "tags": [
+    "snort3",
+    "ids",
+    "mariadb"
+  ],
+  "schemaVersion": 39,
+  "version": 1,
+  "editable": true,
+  "timezone": "browser",
+  "refresh": "1m",
+  "time": {
+    "from": "now-24h",
+    "to": "now"
+  },
+  "graphTooltip": 1,
+  "description": "Frontend к таблице snort.snort_alerts. Фильтры сверху + drill-down по кликам в таблицах.",
+  "templating": {
+    "list": [
+      {
+        "type": "datasource",
+        "name": "DS",
+        "label": "MariaDB",
+        "query": "mysql",
+        "refresh": 1,
+        "current": {},
+        "hide": 0
+      },
+      {
+        "type": "query",
+        "name": "priority",
+        "label": "Приоритет",
+        "datasource": {
+          "type": "mysql",
+          "uid": "${DS}"
+        },
+        "query": "SELECT DISTINCT priority FROM snort_alerts ORDER BY 1",
+        "definition": "SELECT DISTINCT priority FROM snort_alerts ORDER BY 1",
+        "refresh": 2,
+        "multi": true,
+        "includeAll": true,
+        "allValue": "SELECT DISTINCT priority FROM snort_alerts",
+        "current": {
+          "selected": true,
+          "text": "All",
+          "value": "$__all"
+        },
+        "sort": 1
+      },
+      {
+        "type": "query",
+        "name": "class",
+        "label": "Классификация",
+        "datasource": {
+          "type": "mysql",
+          "uid": "${DS}"
+        },
+        "query": "SELECT DISTINCT classification FROM snort_alerts ORDER BY 1",
+        "definition": "SELECT DISTINCT classification FROM snort_alerts ORDER BY 1",
+        "refresh": 2,
+        "multi": true,
+        "includeAll": true,
+        "allValue": "SELECT DISTINCT classification FROM snort_alerts",
+        "current": {
+          "selected": true,
+          "text": "All",
+          "value": "$__all"
+        },
+        "sort": 1
+      },
+      {
+        "type": "query",
+        "name": "action",
+        "label": "Действие",
+        "datasource": {
+          "type": "mysql",
+          "uid": "${DS}"
+        },
+        "query": "SELECT DISTINCT action FROM snort_alerts ORDER BY 1",
+        "definition": "SELECT DISTINCT action FROM snort_alerts ORDER BY 1",
+        "refresh": 2,
+        "multi": true,
+        "includeAll": true,
+        "allValue": "SELECT DISTINCT action FROM snort_alerts",
+        "current": {
+          "selected": true,
+          "text": "All",
+          "value": "$__all"
+        },
+        "sort": 1
+      },
+      {
+        "type": "textbox",
+        "name": "ip",
+        "label": "IP (src/dst, % = все)",
+        "query": "%",
+        "current": {
+          "text": "%",
+          "value": "%"
+        },
+        "options": [
+          {
+            "selected": true,
+            "text": "%",
+            "value": "%"
+          }
+        ]
+      },
+      {
+        "type": "textbox",
+        "name": "sid",
+        "label": "SID (% = все)",
+        "query": "%",
+        "current": {
+          "text": "%",
+          "value": "%"
+        },
+        "options": [
+          {
+            "selected": true,
+            "text": "%",
+            "value": "%"
+          }
+        ]
+      },
+      {
+        "type": "textbox",
+        "name": "flow",
+        "label": "Flow ID (% = все)",
+        "query": "%",
+        "current": {
+          "text": "%",
+          "value": "%"
+        },
+        "options": [
+          {
+            "selected": true,
+            "text": "%",
+            "value": "%"
+          }
+        ]
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 1,
+      "type": "stat",
+      "title": "Алертов за период",
+      "datasource": {
+        "type": "mysql",
+        "uid": "${DS}"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 6,
+        "h": 4
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "mysql",
+            "uid": "${DS}"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT COUNT(*) AS alerts FROM snort_alerts WHERE $__timeFilter(alert_time) AND priority IN ($priority) AND classification IN ($class) AND action IN ($action) AND (src_ip LIKE '$ip' OR dst_ip LIKE '$ip') AND CAST(sig_id AS CHAR) LIKE '$sid' AND CAST(flow_id AS CHAR) LIKE '$flow'"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "blue"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "none"
+      }
+    },
+    {
+      "id": 2,
+      "type": "stat",
+      "title": "Высокий приоритет (P1)",
+      "datasource": {
+        "type": "mysql",
+        "uid": "${DS}"
+      },
+      "gridPos": {
+        "x": 6,
+        "y": 0,
+        "w": 6,
+        "h": 4
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "mysql",
+            "uid": "${DS}"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT COUNT(*) AS p1 FROM snort_alerts WHERE $__timeFilter(alert_time) AND priority IN ($priority) AND classification IN ($class) AND action IN ($action) AND (src_ip LIKE '$ip' OR dst_ip LIKE '$ip') AND CAST(sig_id AS CHAR) LIKE '$sid' AND CAST(flow_id AS CHAR) LIKE '$flow' AND priority=1"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "red"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "none"
+      }
+    },
+    {
+      "id": 3,
+      "type": "stat",
+      "title": "Уникальных источников",
+      "datasource": {
+        "type": "mysql",
+        "uid": "${DS}"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 0,
+        "w": 6,
+        "h": 4
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "mysql",
+            "uid": "${DS}"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT COUNT(DISTINCT src_ip) AS sources FROM snort_alerts WHERE $__timeFilter(alert_time) AND priority IN ($priority) AND classification IN ($class) AND action IN ($action) AND (src_ip LIKE '$ip' OR dst_ip LIKE '$ip') AND CAST(sig_id AS CHAR) LIKE '$sid' AND CAST(flow_id AS CHAR) LIKE '$flow'"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "purple"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "none"
+      }
+    },
+    {
+      "id": 4,
+      "type": "stat",
+      "title": "Уникальных сигнатур",
+      "datasource": {
+        "type": "mysql",
+        "uid": "${DS}"
+      },
+      "gridPos": {
+        "x": 18,
+        "y": 0,
+        "w": 6,
+        "h": 4
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "mysql",
+            "uid": "${DS}"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT COUNT(DISTINCT generator_id, sig_id) AS sigs FROM snort_alerts WHERE $__timeFilter(alert_time) AND priority IN ($priority) AND classification IN ($class) AND action IN ($action) AND (src_ip LIKE '$ip' OR dst_ip LIKE '$ip') AND CAST(sig_id AS CHAR) LIKE '$sid' AND CAST(flow_id AS CHAR) LIKE '$flow'"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "green"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "none"
+      }
+    },
+    {
+      "id": 5,
+      "type": "timeseries",
+      "title": "Алерты во времени по приоритету",
+      "datasource": {
+        "type": "mysql",
+        "uid": "${DS}"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 4,
+        "w": 24,
+        "h": 8
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "mysql",
+            "uid": "${DS}"
+          },
+          "editorMode": "code",
+          "format": "time_series",
+          "rawQuery": true,
+          "rawSql": "SELECT $__timeGroupAlias(alert_time,$__interval), CONCAT('P',priority) AS metric, COUNT(*) AS value FROM snort_alerts WHERE $__timeFilter(alert_time) AND priority IN ($priority) AND classification IN ($class) AND action IN ($action) AND (src_ip LIKE '$ip' OR dst_ip LIKE '$ip') AND CAST(sig_id AS CHAR) LIKE '$sid' AND CAST(flow_id AS CHAR) LIKE '$flow' GROUP BY 1,2 ORDER BY 1"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "drawStyle": "bars",
+            "fillOpacity": 70,
+            "stacking": {
+              "mode": "normal"
+            }
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "P1"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "red"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "P2"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "orange"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "P3"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "yellow"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "P4"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "blue"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      }
+    },
+    {
+      "id": 6,
+      "type": "table",
+      "title": "Группы алертов (клик по SID - детали)",
+      "datasource": {
+        "type": "mysql",
+        "uid": "${DS}"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 12,
+        "w": 14,
+        "h": 9
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "mysql",
+            "uid": "${DS}"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT generator_id, sig_id, MAX(rule_msg) AS rule_msg, MIN(priority) AS priority, COUNT(*) AS alerts, COUNT(DISTINCT src_ip) AS sources, MAX(alert_time) AS last_seen FROM snort_alerts WHERE $__timeFilter(alert_time) AND priority IN ($priority) AND classification IN ($class) AND action IN ($action) AND (src_ip LIKE '$ip' OR dst_ip LIKE '$ip') AND CAST(sig_id AS CHAR) LIKE '$sid' AND CAST(flow_id AS CHAR) LIKE '$flow' GROUP BY generator_id, sig_id ORDER BY alerts DESC LIMIT 50"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "filterable": true
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "sig_id"
+            },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Показать алерты этой группы",
+                    "url": "/d/snort3-alerts/snort3-alerts?orgId=1&var-DS=${DS}&${__url_time_range}&var-sid=${__data.fields.sig_id}",
+                    "targetBlank": false
+                  },
+                  {
+                    "title": "Описание правила (snort.org)",
+                    "url": "https://www.snort.org/rule_docs/${__data.fields.generator_id}-${__data.fields.sig_id}",
+                    "targetBlank": true
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "priority"
+            },
+            "properties": [
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "value": null,
+                      "color": "red"
+                    },
+                    {
+                      "value": 2,
+                      "color": "orange"
+                    },
+                    {
+                      "value": 3,
+                      "color": "yellow"
+                    },
+                    {
+                      "value": 4,
+                      "color": "blue"
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "rule_msg"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 360
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "sortBy": [
+          {
+            "displayName": "alerts",
+            "desc": true
+          }
+        ]
+      },
+      "description": "Клик по sig_id открывает меню: фильтр дашборда по группе или описание правила на snort.org."
+    },
+    {
+      "id": 7,
+      "type": "piechart",
+      "title": "Классификация",
+      "datasource": {
+        "type": "mysql",
+        "uid": "${DS}"
+      },
+      "gridPos": {
+        "x": 14,
+        "y": 12,
+        "w": 5,
+        "h": 9
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "mysql",
+            "uid": "${DS}"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT IF(classification='','(none)',classification) AS metric, COUNT(*) AS value FROM snort_alerts WHERE $__timeFilter(alert_time) AND priority IN ($priority) AND classification IN ($class) AND action IN ($action) AND (src_ip LIKE '$ip' OR dst_ip LIKE '$ip') AND CAST(sig_id AS CHAR) LIKE '$sid' AND CAST(flow_id AS CHAR) LIKE '$flow' GROUP BY 1 ORDER BY 2 DESC LIMIT 10"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "options": {
+        "pieType": "donut",
+        "reduceOptions": {
+          "values": true,
+          "calcs": [],
+          "fields": ""
+        },
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        }
+      }
+    },
+    {
+      "id": 8,
+      "type": "piechart",
+      "title": "Приоритет",
+      "datasource": {
+        "type": "mysql",
+        "uid": "${DS}"
+      },
+      "gridPos": {
+        "x": 19,
+        "y": 12,
+        "w": 5,
+        "h": 9
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "mysql",
+            "uid": "${DS}"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT CONCAT('P',priority) AS metric, COUNT(*) AS value FROM snort_alerts WHERE $__timeFilter(alert_time) AND priority IN ($priority) AND classification IN ($class) AND action IN ($action) AND (src_ip LIKE '$ip' OR dst_ip LIKE '$ip') AND CAST(sig_id AS CHAR) LIKE '$sid' AND CAST(flow_id AS CHAR) LIKE '$flow' GROUP BY priority ORDER BY priority"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "P1"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "red"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "P2"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "orange"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "P3"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "yellow"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "P4"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "blue"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "pieType": "donut",
+        "reduceOptions": {
+          "values": true,
+          "calcs": [],
+          "fields": ""
+        },
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        }
+      }
+    },
+    {
+      "id": 9,
+      "type": "table",
+      "title": "Топ источников",
+      "datasource": {
+        "type": "mysql",
+        "uid": "${DS}"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 21,
+        "w": 8,
+        "h": 8
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "mysql",
+            "uid": "${DS}"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT src_ip, COUNT(*) AS alerts, COUNT(DISTINCT sig_id) AS signatures, MAX(alert_time) AS last_seen FROM snort_alerts WHERE $__timeFilter(alert_time) AND priority IN ($priority) AND classification IN ($class) AND action IN ($action) AND (src_ip LIKE '$ip' OR dst_ip LIKE '$ip') AND CAST(sig_id AS CHAR) LIKE '$sid' AND CAST(flow_id AS CHAR) LIKE '$flow' GROUP BY src_ip ORDER BY alerts DESC LIMIT 20"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "src_ip"
+            },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Алерты с/на этот IP",
+                    "url": "/d/snort3-alerts/snort3-alerts?orgId=1&var-DS=${DS}&${__url_time_range}&var-ip=${__data.fields.src_ip}",
+                    "targetBlank": false
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "options": {}
+    },
+    {
+      "id": 10,
+      "type": "table",
+      "title": "Топ целей",
+      "datasource": {
+        "type": "mysql",
+        "uid": "${DS}"
+      },
+      "gridPos": {
+        "x": 8,
+        "y": 21,
+        "w": 8,
+        "h": 8
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "mysql",
+            "uid": "${DS}"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT dst_ip, COUNT(*) AS alerts, COUNT(DISTINCT sig_id) AS signatures, MAX(alert_time) AS last_seen FROM snort_alerts WHERE $__timeFilter(alert_time) AND priority IN ($priority) AND classification IN ($class) AND action IN ($action) AND (src_ip LIKE '$ip' OR dst_ip LIKE '$ip') AND CAST(sig_id AS CHAR) LIKE '$sid' AND CAST(flow_id AS CHAR) LIKE '$flow' GROUP BY dst_ip ORDER BY alerts DESC LIMIT 20"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "dst_ip"
+            },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Алерты с/на этот IP",
+                    "url": "/d/snort3-alerts/snort3-alerts?orgId=1&var-DS=${DS}&${__url_time_range}&var-ip=${__data.fields.dst_ip}",
+                    "targetBlank": false
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "options": {}
+    },
+    {
+      "id": 11,
+      "type": "bargauge",
+      "title": "Топ портов назначения",
+      "datasource": {
+        "type": "mysql",
+        "uid": "${DS}"
+      },
+      "gridPos": {
+        "x": 16,
+        "y": 21,
+        "w": 8,
+        "h": 8
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "mysql",
+            "uid": "${DS}"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT CONCAT(dst_port,'/',CASE protocol WHEN 6 THEN 'tcp' WHEN 17 THEN 'udp' WHEN 1 THEN 'icmp' ELSE protocol END) AS port, COUNT(*) AS alerts FROM snort_alerts WHERE $__timeFilter(alert_time) AND priority IN ($priority) AND classification IN ($class) AND action IN ($action) AND (src_ip LIKE '$ip' OR dst_ip LIKE '$ip') AND CAST(sig_id AS CHAR) LIKE '$sid' AND CAST(flow_id AS CHAR) LIKE '$flow' GROUP BY dst_port, protocol ORDER BY alerts DESC LIMIT 10"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "options": {
+        "orientation": "horizontal",
+        "displayMode": "gradient",
+        "reduceOptions": {
+          "values": true,
+          "calcs": [],
+          "fields": ""
+        }
+      }
+    },
+    {
+      "id": 12,
+      "type": "table",
+      "title": "Детали алертов (последние 1000 по текущим фильтрам)",
+      "datasource": {
+        "type": "mysql",
+        "uid": "${DS}"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 29,
+        "w": 24,
+        "h": 13
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "mysql",
+            "uid": "${DS}"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT alert_time, priority, action, src_ip, src_port, dst_ip, dst_port, protocol, generator_id, sig_id, rule_msg, classification, flow_id, raw_json FROM snort_alerts WHERE $__timeFilter(alert_time) AND priority IN ($priority) AND classification IN ($class) AND action IN ($action) AND (src_ip LIKE '$ip' OR dst_ip LIKE '$ip') AND CAST(sig_id AS CHAR) LIKE '$sid' AND CAST(flow_id AS CHAR) LIKE '$flow' ORDER BY alert_time DESC LIMIT 1000"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "filterable": true
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "priority"
+            },
+            "properties": [
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "value": null,
+                      "color": "red"
+                    },
+                    {
+                      "value": 2,
+                      "color": "orange"
+                    },
+                    {
+                      "value": 3,
+                      "color": "yellow"
+                    },
+                    {
+                      "value": 4,
+                      "color": "blue"
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background"
+                }
+              },
+              {
+                "id": "custom.width",
+                "value": 80
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "sig_id"
+            },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Только эта сигнатура",
+                    "url": "/d/snort3-alerts/snort3-alerts?orgId=1&var-DS=${DS}&${__url_time_range}&var-sid=${__data.fields.sig_id}",
+                    "targetBlank": false
+                  },
+                  {
+                    "title": "Описание правила (snort.org)",
+                    "url": "https://www.snort.org/rule_docs/${__data.fields.generator_id}-${__data.fields.sig_id}",
+                    "targetBlank": true
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "src_ip"
+            },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Алерты с/на этот IP",
+                    "url": "/d/snort3-alerts/snort3-alerts?orgId=1&var-DS=${DS}&${__url_time_range}&var-ip=${__data.fields.src_ip}",
+                    "targetBlank": false
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "dst_ip"
+            },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Алерты с/на этот IP",
+                    "url": "/d/snort3-alerts/snort3-alerts?orgId=1&var-DS=${DS}&${__url_time_range}&var-ip=${__data.fields.dst_ip}",
+                    "targetBlank": false
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "flow_id"
+            },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Все алерты этого flow",
+                    "url": "/d/snort3-alerts/snort3-alerts?orgId=1&var-DS=${DS}&${__url_time_range}&var-flow=${__data.fields.flow_id}",
+                    "targetBlank": false
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "rule_msg"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 380
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "raw_json"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "json-view"
+                }
+              },
+              {
+                "id": "custom.width",
+                "value": 300
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "sortBy": [
+          {
+            "displayName": "alert_time",
+            "desc": true
+          }
+        ]
+      },
+      "description": "Клик по sig_id / IP / flow_id сужает весь дашборд. Сброс: очистить фильтры сверху."
+    }
+  ]
+}
